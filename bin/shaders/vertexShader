@@ -1,0 +1,27 @@
+#version 400 core
+
+in vec3 position;
+in vec2 textureCoordinates;
+in vec3 normal;
+out vec3 colorToFragment;
+out vec2 textureCoordsToFragment;
+out vec3 normalOfSurface;
+out vec3 vecToLightSource;
+out vec3 vecToCamera;
+
+uniform mat4 transformationMatrix;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform vec3 lightPosition;
+
+void main(void){	
+	vec3 cameraPosition;	
+	vec4 globalPosition =  transformationMatrix * vec4(position, 1.0);	
+	gl_Position = projectionMatrix * viewMatrix * globalPosition;
+	textureCoordsToFragment = textureCoordinates;
+	normalOfSurface  = (transformationMatrix * vec4(normal,0.0)).xyz;
+	vecToLightSource = lightPosition - globalPosition.xyz;
+	cameraPosition = (inverse(viewMatrix) * vec4(0.0,0.0,0.0,1.0)).xyz;
+	vecToCamera = cameraPosition.xyz - globalPosition.xyz;	
+}
+

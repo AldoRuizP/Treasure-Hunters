@@ -1,0 +1,36 @@
+#version 400 core
+
+in vec3 colorToFragment;
+in vec2 textureCoordsToFragment;
+in vec3 normalOfSurface;
+in vec3 vecToLightSource;
+in vec3 vecToCamera;
+out vec4 out_Color;
+
+uniform sampler2D textureSampler;
+uniform vec3 lightColor;
+uniform float reflectivePercentage;
+uniform float shinePercentage;
+
+void main(void){
+	float minBrightness = 0.15; // Minimum is 0.1 to avoid having completely black pixels
+	vec3 unitNormalOfSurface  = normalize(normalOfSurface);
+	vec3 unitVecToLightSource = normalize(vecToLightSource);
+	vec3 unitVecToCamera	  = normalize(vecToCamera);	
+	float dotProduct = dot(unitNormalOfSurface,  unitVecToLightSource);
+	float brightness = max(dotProduct, minBrightness); 
+	vec3 diffuse = brightness * lightColor;
+	vec3 vecToLightDirection = -unitVecToLightSource;
+	vec3 vecDirectionOfReflectedLight = reflect(vecToLightDirection, unitNormalOfSurface);	
+	float specularLightFactor = dot(vecDirectionOfReflectedLight, unitVecToCamera);
+	specularLightFactor = max(specularLightFactor, 0.0);	
+	float shineFactor = pow(specularLightFactor, shinePercentage);	
+	vec3 specularLightTotal = reflectivePercentage * shineFactor * lightColor;	
+	vec4 textureColor = texture(textureSampler, textureCoordsToFragment);
+	if(textureColor.a<0.5) 
+		discard;
+	out_Color =   vec4(diffuse,1.0) * textureColor + vec4(specularLightTotal, 1.0);
+}
+
+
+
